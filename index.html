@@ -3,30 +3,27 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>在线投票系统</title>
+    <title>可编辑投票系统</title>
     <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
     <style>
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
         }
         
         body {
-            line-height: 1.6;
+            font-family: "Microsoft YaHei", "微软雅黑", Arial, sans-serif;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             min-height: 100vh;
             padding: 20px;
-            color: #333;
         }
         
         .container {
             max-width: 1200px;
             margin: 0 auto;
             background: white;
-            border-radius: 15px;
+            border-radius: 20px;
             box-shadow: 0 20px 40px rgba(0,0,0,0.1);
             overflow: hidden;
         }
@@ -34,1021 +31,1387 @@
         .header {
             background: #2c3e50;
             color: white;
-            padding: 20px;
+            padding: 30px;
             text-align: center;
+            position: relative;
         }
         
-        .nav {
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            font-weight: 300;
+        }
+        
+        .header p {
+            font-size: 1.2em;
+            opacity: 0.9;
+        }
+        
+        .mode-switcher {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            display: flex;
+            gap: 10px;
+        }
+        
+        .mode-btn {
+            background: #3498db;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1em;
+            transition: background 0.3s;
+        }
+        
+        .mode-btn:hover {
+            background: #2980b9;
+        }
+        
+        .mode-btn.active {
+            background: #e74c3c;
+        }
+        
+        .admin-panel {
+            display: none;
+            padding: 30px;
+            background: #f8f9fa;
+        }
+        
+        .admin-panel.active {
+            display: block;
+        }
+        
+        .user-panel {
+            display: block;
+        }
+        
+        .user-panel.active {
+            display: block;
+        }
+        
+        .admin-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+        }
+        
+        .admin-title {
+            font-size: 2em;
+            color: #2c3e50;
+        }
+        
+        .admin-actions {
+            display: flex;
+            gap: 15px;
+        }
+        
+        .admin-btn {
+            background: #3498db;
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1.1em;
+            transition: background 0.3s;
+        }
+        
+        .admin-btn:hover {
+            background: #2980b9;
+        }
+        
+        .admin-btn.save {
+            background: #2ecc71;
+        }
+        
+        .admin-btn.save:hover {
+            background: #27ae60;
+        }
+        
+        .admin-btn.export {
+            background: #9b59b6;
+        }
+        
+        .admin-btn.export:hover {
+            background: #8e44ad;
+        }
+        
+        .topics-container {
+            display: grid;
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .topic-card {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            border-left: 5px solid #3498db;
+        }
+        
+        .topic-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 20px;
+        }
+        
+        .topic-title {
+            font-size: 1.8em;
+            color: #2c3e50;
+            width: 70%;
+            border: none;
+            background: transparent;
+            padding: 5px;
+        }
+        
+        .topic-title:focus {
+            outline: none;
+            background: white;
+            box-shadow: 0 0 0 2px #3498db;
+            border-radius: 5px;
+        }
+        
+        .topic-actions {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .topic-btn {
+            background: #95a5a6;
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 0.9em;
+            transition: background 0.3s;
+        }
+        
+        .topic-btn.edit {
+            background: #f39c12;
+        }
+        
+        .topic-btn.edit:hover {
+            background: #e67e22;
+        }
+        
+        .topic-btn.delete {
+            background: #e74c3c;
+        }
+        
+        .topic-btn.delete:hover {
+            background: #c0392b;
+        }
+        
+        .topic-description {
+            font-size: 1.3em;
+            color: #7f8c8d;
+            margin-bottom: 20px;
+            line-height: 1.5;
+            width: 100%;
+            border: none;
+            background: transparent;
+            padding: 5px;
+            resize: vertical;
+            min-height: 60px;
+        }
+        
+        .topic-description:focus {
+            outline: none;
+            background: white;
+            box-shadow: 0 0 0 2px #3498db;
+            border-radius: 5px;
+        }
+        
+        .options-container {
+            display: grid;
+            gap: 15px;
+        }
+        
+        .option-item {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 10px;
+        }
+        
+        .option-text {
+            flex: 1;
+            font-size: 1.3em;
+            color: #2c3e50;
+            border: none;
+            background: transparent;
+            padding: 5px;
+        }
+        
+        .option-text:focus {
+            outline: none;
+            background: white;
+            box-shadow: 0 0 0 2px #3498db;
+        }
+        
+        .option-actions {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .option-btn {
+            background: #bdc3c7;
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 3px;
+            cursor: pointer;
+            font-size: 0.8em;
+        }
+        
+        .option-btn.delete {
+            background: #e74c3c;
+        }
+        
+        .add-option {
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
+        }
+        
+        .add-option input {
+            flex: 1;
+            padding: 10px;
+            border: 2px dashed #bdc3c7;
+            border-radius: 5px;
+            font-size: 1.1em;
+        }
+        
+        .add-option button {
+            background: #2ecc71;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        
+        .tabs {
             display: flex;
             background: #34495e;
-            flex-wrap: wrap;
+            overflow-x: auto;
         }
         
-        .nav button {
-            flex: 1;
-            min-width: 120px;
-            padding: 15px;
-            border: none;
-            background: none;
+        .tab {
+            padding: 20px 30px;
             color: white;
             cursor: pointer;
-            transition: all 0.3s;
-            font-size: 16px;
+            font-size: 1.3em;
+            border-bottom: 4px solid transparent;
+            white-space: nowrap;
+            flex: 1;
+            text-align: center;
+            min-width: 200px;
         }
         
-        .nav button:hover {
-            background: #3a506b;
-        }
-        
-        .nav button.active {
-            background: #1abc9c;
-        }
-        
-        .content {
-            padding: 30px;
-            min-height: 500px;
+        .tab.active {
+            background: #2c3e50;
+            border-bottom-color: #3498db;
         }
         
         .tab-content {
             display: none;
+            padding: 40px;
         }
         
         .tab-content.active {
             display: block;
         }
         
-        .form-group {
-            margin-bottom: 20px;
-        }
-        
-        label {
-            display: block;
-            margin-bottom: 5px;
-            font-weight: 600;
+        .vote-title {
+            font-size: 2em;
             color: #2c3e50;
+            margin-bottom: 30px;
+            text-align: center;
         }
         
-        input, textarea, select {
-            width: 100%;
-            padding: 12px;
-            border: 2px solid #ecf0f1;
-            border-radius: 8px;
-            font-size: 16px;
-            transition: border-color 0.3s;
+        .vote-description {
+            font-size: 1.3em;
+            color: #7f8c8d;
+            text-align: center;
+            margin-bottom: 30px;
+            line-height: 1.5;
         }
         
-        input:focus, textarea:focus, select:focus {
-            outline: none;
-            border-color: #3498db;
-        }
-        
-        .btn {
-            padding: 12px 24px;
-            background: #3498db;
-            color: white;
-            border: none;
-            border-radius: 8px;
-            cursor: pointer;
-            font-size: 16px;
-            transition: background 0.3s;
-            margin: 5px;
-            display: inline-block;
-            text-decoration: none;
-        }
-        
-        .btn:hover {
-            background: #2980b9;
-        }
-        
-        .btn-success {
-            background: #27ae60;
-        }
-        
-        .btn-success:hover {
-            background: #219a52;
-        }
-        
-        .btn-danger {
-            background: #e74c3c;
-        }
-        
-        .btn-danger:hover {
-            background: #c0392b;
+        .vote-options-container {
+            display: grid;
+            gap: 20px;
+            margin-bottom: 40px;
         }
         
         .vote-option {
             background: #f8f9fa;
-            padding: 15px;
-            margin: 10px 0;
-            border-radius: 8px;
-            border-left: 4px solid #3498db;
-        }
-        
-        .vote-item {
-            display: flex;
-            align-items: center;
-            margin: 10px 0;
-        }
-        
-        .vote-item input[type="radio"],
-        .vote-item input[type="checkbox"] {
-            width: auto;
-            margin-right: 10px;
-        }
-        
-        .qrcode-container {
-            text-align: center;
-            padding: 20px;
-            background: #f8f9fa;
-            border-radius: 10px;
-            margin: 20px 0;
-        }
-        
-        .stats {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 20px;
-            margin: 20px 0;
-        }
-        
-        .stat-card {
-            background: white;
-            padding: 20px;
-            border-radius: 10px;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
-            text-align: center;
-        }
-        
-        .progress-bar {
-            height: 20px;
-            background: #ecf0f1;
-            border-radius: 10px;
-            margin: 10px 0;
-            overflow: hidden;
-        }
-        
-        .progress {
-            height: 100%;
-            background: linear-gradient(90deg, #3498db, #2ecc71);
-            transition: width 0.3s;
-        }
-        
-        .vote-list {
-            max-height: 400px;
-            overflow-y: auto;
-        }
-        
-        .vote-card {
-            background: white;
-            border: 1px solid #ddd;
-            border-radius: 8px;
-            padding: 15px;
-            margin: 10px 0;
+            border: 3px solid #e9ecef;
+            border-radius: 15px;
+            padding: 25px;
             cursor: pointer;
-            transition: transform 0.2s;
+            transition: all 0.3s ease;
+            text-align: center;
         }
         
-        .vote-card:hover {
+        .vote-option:hover {
+            border-color: #3498db;
             transform: translateY(-2px);
             box-shadow: 0 5px 15px rgba(0,0,0,0.1);
         }
         
-        .hidden {
+        .vote-option.selected {
+            border-color: #2ecc71;
+            background: #d5f4e6;
+        }
+        
+        .option-text-display {
+            font-size: 1.8em;
+            color: #2c3e50;
+            font-weight: 500;
+        }
+        
+        .submit-section {
+            margin-top: 40px;
+            border-top: 2px solid #ecf0f1;
+            padding-top: 30px;
+        }
+        
+        .submit-btn {
+            width: 100%;
+            background: #2ecc71;
+            color: white;
+            border: none;
+            padding: 25px;
+            font-size: 1.8em;
+            border-radius: 15px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: 500;
+        }
+        
+        .submit-btn:hover {
+            background: #27ae60;
+            transform: translateY(-2px);
+        }
+        
+        .submit-btn:disabled {
+            background: #bdc3c7;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        .result-section {
             display: none;
+            padding: 40px;
         }
         
-        .success-message {
-            background: #d4edda;
-            color: #155724;
-            padding: 15px;
-            border-radius: 5px;
-            margin: 10px 0;
+        .result-title {
+            font-size: 2em;
+            color: #2c3e50;
+            margin-bottom: 30px;
+            text-align: center;
         }
         
-        .settings-panel {
+        .result-item {
+            margin-bottom: 25px;
+        }
+        
+        .result-label {
+            font-size: 1.5em;
+            color: #2c3e50;
+            margin-bottom: 10px;
+            display: flex;
+            justify-content: space-between;
+        }
+        
+        .progress-bar {
+            width: 100%;
+            height: 40px;
+            background: #ecf0f1;
+            border-radius: 20px;
+            overflow: hidden;
+        }
+        
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #3498db, #2ecc71);
+            border-radius: 20px;
+            transition: width 0.5s ease;
+            min-width: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 1.2em;
+            font-weight: bold;
+        }
+        
+        .thank-you {
+            text-align: center;
+            font-size: 1.8em;
+            color: #2c3e50;
+            margin-top: 30px;
+            padding: 20px;
             background: #f8f9fa;
+            border-radius: 15px;
+        }
+        
+        .qr-section {
+            background: #f8f9fa;
+            padding: 30px;
+            text-align: center;
+            border-top: 3px solid #e9ecef;
+        }
+        
+        .qr-code {
+            width: 200px;
+            height: 200px;
+            margin: 20px auto;
+            background: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 10px;
+            border: 1px solid #e9ecef;
+        }
+        
+        .qr-code img {
+            max-width: 100%;
+            max-height: 100%;
+        }
+        
+        .qr-actions {
+            margin-top: 15px;
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+        }
+        
+        .qr-btn {
+            background: #3498db;
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 0.9em;
+        }
+        
+        .completion-status {
+            font-size: 1.2em;
+            color: #2c3e50;
+            text-align: center;
+            margin-bottom: 20px;
+            padding: 15px;
+            background: #ecf0f1;
+            border-radius: 10px;
+        }
+        
+        .user-info-form {
+            background: #f8f9fa;
+            padding: 30px;
+            border-radius: 15px;
+            margin-bottom: 30px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+        
+        .form-title {
+            font-size: 1.8em;
+            color: #2c3e50;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        .form-group label {
+            display: block;
+            font-size: 1.2em;
+            color: #2c3e50;
+            margin-bottom: 8px;
+        }
+        
+        .form-group input {
+            width: 100%;
+            padding: 15px;
+            border: 2px solid #bdc3c7;
+            border-radius: 8px;
+            font-size: 1.1em;
+        }
+        
+        .form-group input:focus {
+            outline: none;
+            border-color: #3498db;
+        }
+        
+        .form-actions {
+            display: flex;
+            justify-content: center;
+            margin-top: 20px;
+        }
+        
+        .form-submit-btn {
+            background: #3498db;
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            font-size: 1.3em;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+        
+        .form-submit-btn:hover {
+            background: #2980b9;
+        }
+        
+        .user-info-display {
+            background: #d5f4e6;
             padding: 15px;
             border-radius: 8px;
-            margin: 20px 0;
+            margin-bottom: 20px;
+            text-align: center;
+            font-size: 1.2em;
+            color: #2c3e50;
         }
         
-        .deploy-notice {
-            background: #fff3cd;
-            border: 1px solid #ffeaa7;
+        .status-message {
+            padding: 10px 15px;
             border-radius: 5px;
-            padding: 15px;
-            margin: 15px 0;
+            margin: 10px 0;
+            text-align: center;
+            font-size: 1.1em;
         }
         
-        .vote-type-container {
-            display: flex;
-            align-items: center;
-            gap: 20px;
-            margin-top: 10px;
+        .status-success {
+            background: #d5f4e6;
+            color: #27ae60;
+            border: 1px solid #2ecc71;
         }
         
-        .vote-type-option {
-            display: flex;
-            align-items: center;
-        }
-        
-        .vote-type-option input[type="radio"] {
-            width: auto;
-            margin-right: 8px;
-        }
-        
-        .option-description {
-            margin-top: 10px;
-        }
-        
-        .option-description textarea {
-            min-height: 80px;
-            resize: vertical;
+        .status-error {
+            background: #fadbd8;
+            color: #c0392b;
+            border: 1px solid #e74c3c;
         }
         
         @media (max-width: 768px) {
-            .nav {
-                flex-direction: column;
-            }
-            
-            .stats {
-                grid-template-columns: 1fr;
-            }
-            
-            .vote-type-container {
-                flex-direction: column;
-                align-items: flex-start;
-                gap: 10px;
-            }
-        }
-        
-        .github-pages-guide {
-            background: #f0f8ff;
-            border-left: 4px solid #0366d6;
-            padding: 15px;
-            margin: 20px 0;
-            border-radius: 5px;
+            .header h1 { font-size: 2em; }
+            .vote-title, .result-title { font-size: 1.6em; }
+            .option-text-display { font-size: 1.4em; }
+            .submit-btn { font-size: 1.4em; padding: 20px; }
+            .tab { padding: 15px 20px; font-size: 1.1em; min-width: 150px; }
+            .topic-header { flex-direction: column; gap: 15px; }
+            .topic-title { width: 100%; }
+            .admin-header { flex-direction: column; gap: 20px; }
+            .admin-actions { width: 100%; justify-content: center; }
         }
     </style>
 </head>
 <body>
     <div class="container">
         <div class="header">
-            <h1>在线投票系统</h1>
-            <p>创建、发布和管理您的投票活动</p>
+            <h1>可编辑投票系统</h1>
+            <p>管理员可编辑投票事项，员工可扫码投票</p>
+            <div class="mode-switcher">
+                <button class="mode-btn active" id="userModeBtn">用户投票界面</button>
+                <button class="mode-btn" id="adminModeBtn">管理员后台</button>
+            </div>
         </div>
         
-        <div class="nav">
-            <button onclick="showTab('manage')" class="active">投票管理</button>
-            <button onclick="showTab('create')">创建投票</button>
-            <button onclick="showTab('results')">投票结果</button>
-            <button onclick="showTab('vote')">参与投票</button>
-            <button onclick="showTab('deploy')">部署指南</button>
+        <!-- 管理员后台 -->
+        <div class="admin-panel" id="adminPanel">
+            <div class="admin-header">
+                <h2 class="admin-title">投票事项管理</h2>
+                <div class="admin-actions">
+                    <button class="admin-btn" id="addTopicBtn">添加新事项</button>
+                    <button class="admin-btn save" id="saveAllBtn">保存所有更改</button>
+                    <button class="admin-btn export" id="exportResultsBtn">导出投票结果</button>
+                </div>
+            </div>
+            
+            <div id="adminStatusMessage"></div>
+            
+            <div class="topics-container" id="adminTopicsContainer">
+                <!-- 管理员编辑的事项列表将在这里动态生成 -->
+            </div>
+            
+            <div class="qr-section">
+                <h3>生成投票二维码</h3>
+                <p>将此二维码分享给员工，员工扫描后可直接进入投票界面</p>
+                <div class="qr-code" id="adminQrCode">
+                    <!-- 二维码将在这里生成 -->
+                </div>
+                <div class="qr-actions">
+                    <button class="qr-btn" id="downloadQrBtn">下载二维码图片</button>
+                    <button class="qr-btn" id="refreshQrBtn">刷新二维码</button>
+                </div>
+                <div id="voteUrl" style="font-size: 1.2em; color: #666; margin-top: 10px; word-break: break-all;">
+                    <!-- 投票链接将在这里显示 -->
+                </div>
+            </div>
         </div>
         
-        <div class="content">
-            <!-- 投票管理 -->
-            <div id="manage" class="tab-content active">
-                <h2>投票管理</h2>
-                <div class="vote-list" id="voteList">
-                    <p>暂无投票活动，请创建新投票</p>
+        <!-- 用户投票界面 -->
+        <div class="user-panel active" id="userPanel">
+            <!-- 用户信息表单 -->
+            <div class="user-info-form" id="userInfoForm">
+                <h3 class="form-title">请填写个人信息</h3>
+                <div class="form-group">
+                    <label for="userUnit">单位/部门</label>
+                    <input type="text" id="userUnit" placeholder="请输入您的单位或部门">
+                </div>
+                <div class="form-group">
+                    <label for="userName">姓名</label>
+                    <input type="text" id="userName" placeholder="请输入您的姓名">
+                </div>
+                <div class="form-group">
+                    <label for="userPhone">联系电话</label>
+                    <input type="tel" id="userPhone" placeholder="请输入您的联系电话">
+                </div>
+                <div class="form-actions">
+                    <button class="form-submit-btn" id="submitUserInfo">开始投票</button>
                 </div>
             </div>
             
-            <!-- 创建投票 -->
-            <div id="create" class="tab-content">
-                <h2>创建新投票</h2>
-                <form id="voteForm">
-                    <div class="form-group">
-                        <label for="voteTitle">投票标题</label>
-                        <input type="text" id="voteTitle" placeholder="请输入投票标题" required>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label for="voteDescription">投票描述</label>
-                        <textarea id="voteDescription" placeholder="请输入投票描述" rows="3"></textarea>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label>投票类型</label>
-                        <div class="vote-type-container">
-                            <div class="vote-type-option">
-                                <input type="radio" id="single" name="voteType" value="single" checked>
-                                <label for="single">单选</label>
-                            </div>
-                            <div class="vote-type-option">
-                                <input type="radio" id="multiple" name="voteType" value="multiple">
-                                <label for="multiple">多选</label>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label>投票选项</label>
-                        <div id="voteOptions">
-                            <div class="vote-option">
-                                <input type="text" placeholder="选项1" class="option-input" required>
-                                <div class="option-description">
-                                    <label>选项描述（可选）</label>
-                                    <textarea placeholder="请输入选项描述" class="option-desc"></textarea>
-                                </div>
-                            </div>
-                            <div class="vote-option">
-                                <input type="text" placeholder="选项2" class="option-input" required>
-                                <div class="option-description">
-                                    <label>选项描述（可选）</label>
-                                    <textarea placeholder="请输入选项描述" class="option-desc"></textarea>
-                                </div>
-                            </div>
-                        </div>
-                        <button type="button" class="btn" onclick="addOption()">添加选项</button>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label for="startTime">开始时间</label>
-                        <input type="datetime-local" id="startTime" required>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label for="endTime">结束时间</label>
-                        <input type="datetime-local" id="endTime" required>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label for="collectInfo">收集投票人信息</label>
-                        <select id="collectInfo">
-                            <option value="none">不收集</option>
-                            <option value="name">仅姓名</option>
-                            <option value="contact">仅联系方式</option>
-                            <option value="both">姓名和联系方式</option>
-                        </select>
-                    </div>
-                    
-                    <button type="submit" class="btn btn-success">创建投票</button>
-                </form>
+            <!-- 用户信息显示 -->
+            <div class="user-info-display" id="userInfoDisplay" style="display: none;">
+                <!-- 用户信息将在这里显示 -->
             </div>
             
-            <!-- 投票结果 -->
-            <div id="results" class="tab-content">
-                <h2>投票结果</h2>
-                <div id="resultContent">
-                    <p>请从"投票管理"中选择一个投票活动查看结果</p>
-                </div>
+            <div class="tabs" id="voteTabs">
+                <!-- 选项卡由JavaScript动态生成 -->
             </div>
             
-            <!-- 参与投票 -->
-            <div id="vote" class="tab-content">
-                <h2>参与投票</h2>
-                <div class="settings-panel">
-                    <h3>GitHub Pages配置</h3>
-                    <p>您的GitHub Pages地址已自动检测并设置。</p>
-                    <div class="form-group">
-                        <label for="serverUrl">服务器地址 (URL)</label>
-                        <input type="text" id="serverUrl" value="1596555326.github.io" readonly>
-                        <small>这是您的GitHub Pages地址，用于生成可微信扫描的二维码</small>
-                    </div>
-                </div>
-                <div id="voteContent">
-                    <p>请先创建投票活动，然后生成二维码</p>
-                </div>
+            <div id="tabContents">
+                <!-- 选项卡内容由JavaScript动态生成 -->
             </div>
             
-            <!-- 部署指南 -->
-            <div id="deploy" class="tab-content">
-                <h2>GitHub Pages部署指南</h2>
-                
-                <div class="github-pages-guide">
-                    <h3>✅ 您的GitHub Pages已成功部署！</h3>
-                    <p>您的网站地址：<strong>1596555326.github.io</strong></p>
-                    <p>现在您可以：</p>
-                    <ol>
-                        <li>创建投票活动</li>
-                        <li>生成可微信扫描的二维码</li>
-                        <li>分享二维码让用户参与投票</li>
-                    </ol>
-                </div>
-                
-                <h3>GitHub Pages使用说明</h3>
-                <ol>
-                    <li>将本HTML文件保存为<strong>index.html</strong></li>
-                    <li>上传到您的GitHub仓库</li>
-                    <li>确保仓库设置为公开(Public)</li>
-                    <li>在仓库设置中启用GitHub Pages功能</li>
-                    <li>访问<strong>1596555326.github.io</strong>即可使用投票系统</li>
-                </ol>
-                
-                <h3>常见问题解决</h3>
-                <div class="stats">
-                    <div class="stat-card">
-                        <h4>页面显示404错误</h4>
-                        <p>确保文件名为<strong>index.html</strong>并位于仓库根目录</p>
-                    </div>
-                    <div class="stat-card">
-                        <h4>二维码无法扫描</h4>
-                        <p>GitHub Pages默认使用HTTPS，确保二维码链接使用<strong>https://</strong></p>
-                    </div>
-                    <div class="stat-card">
-                        <h4>更改不生效</h4>
-                        <p>GitHub Pages部署可能有1-10分钟延迟，请耐心等待</p>
-                    </div>
-                </div>
-                
-                <h3>测试您的部署</h3>
-                <p>请访问 <a href="https://1596555326.github.io" target="_blank">https://1596555326.github.io</a> 测试您的投票系统是否正常工作。</p>
+            <div class="result-section" id="resultSection">
+                <div class="result-title">投票结果统计</div>
+                <div id="resultsContainer"></div>
+                <div class="thank-you">感谢您完成所有投票！</div>
             </div>
         </div>
     </div>
 
     <script>
-        // 存储投票数据
-        let votes = JSON.parse(localStorage.getItem('votes')) || {};
-        let currentVoteId = null;
-        // 自动设置GitHub Pages地址
-        let serverUrl = window.location.hostname === '1596555326.github.io' ? 
-            'https://1596555326.github.io' : 
-            (localStorage.getItem('voteSystemServerUrl') || '');
-        
-        // 初始化
-        document.addEventListener('DOMContentLoaded', function() {
-            // 设置默认时间
-            const now = new Date();
-            const tomorrow = new Date(now);
-            tomorrow.setDate(tomorrow.getDate() + 1);
-            
-            document.getElementById('startTime').value = formatDateTime(now);
-            document.getElementById('endTime').value = formatDateTime(tomorrow);
-            
-            // 设置服务器URL
-            document.getElementById('serverUrl').value = serverUrl;
-            localStorage.setItem('voteSystemServerUrl', serverUrl);
-            
-            // 加载投票列表
-            loadVoteList();
-            
-            // 表单提交事件
-            document.getElementById('voteForm').addEventListener('submit', function(e) {
-                e.preventDefault();
-                createVote();
-            });
-            
-            // 检查URL参数，显示对应的投票
-            const urlParams = new URLSearchParams(window.location.search);
-            const voteParam = urlParams.get('vote');
-            if (voteParam && votes[voteParam]) {
-                showVotePage(voteParam);
+        // 默认投票事项数据
+        let voteTopics = [
+            {
+                id: 'leader',
+                title: '选班长',
+                description: '请选择您认为适合担任班长的同学',
+                options: [
+                    { value: 'zhang', label: '张同学', count: 24 },
+                    { value: 'zhu', label: '朱同学', count: 17 },
+                    { value: 'zhou', label: '周同学', count: 9 }
+                ]
+            },
+            {
+                id: 'study',
+                title: '选学习委员',
+                description: '请选择您认为适合担任学习委员的同学',
+                options: [
+                    { value: 'li', label: '李同学', count: 18 },
+                    { value: 'wang', label: '王同学', count: 22 },
+                    { value: 'chen', label: '陈同学', count: 10 }
+                ]
             }
+        ];
+
+        // 用户投票记录
+        let userVotes = {};
+        let isAdminMode = false;
+        let currentUserInfo = null;
+        
+        // 页面加载完成后初始化
+        document.addEventListener('DOMContentLoaded', function() {
+            initializePage();
         });
         
-        // 显示标签页
-        function showTab(tabName) {
-            // 隐藏所有标签内容
-            document.querySelectorAll('.tab-content').forEach(tab => {
-                tab.classList.remove('active');
-            });
+        // 初始化页面
+        function initializePage() {
+            console.log('初始化页面...');
             
-            // 移除所有按钮的active类
-            document.querySelectorAll('.nav button').forEach(button => {
-                button.classList.remove('active');
-            });
-            
-            // 显示选中的标签内容
-            document.getElementById(tabName).classList.add('active');
-            
-            // 为当前按钮添加active类
-            event.target.classList.add('active');
-            
-            // 如果是投票管理标签，刷新列表
-            if (tabName === 'manage') {
-                loadVoteList();
+            // 尝试从本地存储加载数据
+            const savedTopics = localStorage.getItem('voteTopics');
+            if (savedTopics) {
+                try {
+                    voteTopics = JSON.parse(savedTopics);
+                    console.log('投票数据加载成功');
+                } catch (e) {
+                    console.error('投票数据加载失败:', e);
+                }
             }
-        }
-        
-        // 添加投票选项
-        function addOption() {
-            const optionsContainer = document.getElementById('voteOptions');
-            const optionCount = optionsContainer.children.length;
-            const newOption = document.createElement('div');
-            newOption.className = 'vote-option';
-            newOption.innerHTML = `
-                <input type="text" placeholder="选项${optionCount + 1}" class="option-input" required>
-                <div class="option-description">
-                    <label>选项描述（可选）</label>
-                    <textarea placeholder="请输入选项描述" class="option-desc"></textarea>
-                </div>
-                <button type="button" class="btn btn-danger" onclick="removeOption(this)" style="margin-top: 10px; padding: 5px 10px;">删除</button>
-            `;
-            optionsContainer.appendChild(newOption);
-        }
-        
-        // 删除投票选项
-        function removeOption(button) {
-            if (document.getElementById('voteOptions').children.length > 2) {
-                button.parentElement.remove();
-            } else {
-                alert('至少需要两个投票选项');
+            
+            // 检查是否已投票
+            const savedVotes = localStorage.getItem('userVotes');
+            if (savedVotes) {
+                try {
+                    userVotes = JSON.parse(savedVotes);
+                    if (Object.keys(userVotes).length === voteTopics.length) {
+                        showResults();
+                    }
+                } catch (e) {
+                    console.error('投票记录加载错误:', e);
+                }
             }
+            
+            // 检查是否已填写用户信息
+            const savedUserInfo = localStorage.getItem('currentUserInfo');
+            if (savedUserInfo) {
+                try {
+                    currentUserInfo = JSON.parse(savedUserInfo);
+                    showUserInfo();
+                    hideUserInfoForm();
+                } catch (e) {
+                    console.error('用户信息加载错误:', e);
+                }
+            }
+            
+            // 初始化界面
+            initializeUserInterface();
+            initializeAdminInterface();
+            
+            // 设置模式切换事件
+            document.getElementById('userModeBtn').addEventListener('click', switchToUserMode);
+            document.getElementById('adminModeBtn').addEventListener('click', switchToAdminMode);
+            
+            // 设置用户信息提交事件
+            document.getElementById('submitUserInfo').addEventListener('click', submitUserInfo);
+            
+            // 设置管理员按钮事件
+            document.getElementById('addTopicBtn').addEventListener('click', addNewTopic);
+            document.getElementById('saveAllBtn').addEventListener('click', saveAllChanges);
+            document.getElementById('exportResultsBtn').addEventListener('click', exportResults);
+            
+            // 设置二维码按钮事件
+            document.getElementById('downloadQrBtn').addEventListener('click', downloadQRCode);
+            document.getElementById('refreshQrBtn').addEventListener('click', generateQRCode);
+            
+            // 检查URL参数，如果是扫码进入则自动跳转到用户界面
+            checkUrlParams();
+            
+            // 生成管理员后台的二维码
+            generateQRCode();
+            
+            console.log('页面初始化完成');
         }
         
-        // 创建投票
-        function createVote() {
-            const title = document.getElementById('voteTitle').value;
-            const description = document.getElementById('voteDescription').value;
-            const voteType = document.querySelector('input[name="voteType"]:checked').value;
-            const startTime = document.getElementById('startTime').value;
-            const endTime = document.getElementById('endTime').value;
-            const collectInfo = document.getElementById('collectInfo').value;
+        // 检查URL参数
+        function checkUrlParams() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const mode = urlParams.get('mode');
             
-            // 获取选项
-            const options = [];
-            const optionInputs = document.querySelectorAll('.vote-option');
-            
-            optionInputs.forEach(optionDiv => {
-                const textInput = optionDiv.querySelector('.option-input');
-                const descInput = optionDiv.querySelector('.option-desc');
+            if (mode === 'user') {
+                // 如果是通过扫码进入，自动切换到用户界面
+                switchToUserMode();
                 
-                if (textInput.value.trim()) {
-                    options.push({
-                        text: textInput.value.trim(),
-                        description: descInput.value.trim(),
-                        votes: 0
+                setTimeout(() => {
+                    document.querySelector('.tabs').scrollIntoView({ behavior: 'smooth' });
+                }, 500);
+            }
+        }
+        
+        // 切换到用户模式
+        function switchToUserMode() {
+            isAdminMode = false;
+            document.getElementById('adminPanel').classList.remove('active');
+            document.getElementById('userPanel').classList.add('active');
+            document.getElementById('userModeBtn').classList.add('active');
+            document.getElementById('adminModeBtn').classList.remove('active');
+            initializeUserInterface();
+        }
+        
+        // 切换到管理员模式
+        function switchToAdminMode() {
+            isAdminMode = true;
+            document.getElementById('userPanel').classList.remove('active');
+            document.getElementById('adminPanel').classList.add('active');
+            document.getElementById('adminModeBtn').classList.add('active');
+            document.getElementById('userModeBtn').classList.remove('active');
+            initializeAdminInterface();
+        }
+        
+        // 初始化用户界面
+        function initializeUserInterface() {
+            // 如果用户已填写信息，显示投票界面
+            if (currentUserInfo) {
+                hideUserInfoForm();
+                createTabs();
+                createTabContents();
+                updateCompletionStatus();
+            } else {
+                // 显示用户信息表单
+                showUserInfoForm();
+            }
+        }
+        
+        // 初始化管理员界面
+        function initializeAdminInterface() {
+            renderAdminTopics();
+        }
+        
+        // 提交用户信息
+        function submitUserInfo() {
+            const unit = document.getElementById('userUnit').value.trim();
+            const name = document.getElementById('userName').value.trim();
+            const phone = document.getElementById('userPhone').value.trim();
+            
+            if (!unit || !name || !phone) {
+                alert('请填写完整的个人信息');
+                return;
+            }
+            
+            // 保存用户信息
+            currentUserInfo = { unit, name, phone };
+            localStorage.setItem('currentUserInfo', JSON.stringify(currentUserInfo));
+            
+            // 显示用户信息并隐藏表单
+            showUserInfo();
+            hideUserInfoForm();
+            
+            // 初始化投票界面
+            createTabs();
+            createTabContents();
+            updateCompletionStatus();
+        }
+        
+        // 显示用户信息
+        function showUserInfo() {
+            if (currentUserInfo) {
+                const displayElement = document.getElementById('userInfoDisplay');
+                displayElement.innerHTML = `
+                    <strong>投票人信息：</strong> ${currentUserInfo.unit} - ${currentUserInfo.name} (${currentUserInfo.phone})
+                `;
+                displayElement.style.display = 'block';
+            }
+        }
+        
+        // 显示用户信息表单
+        function showUserInfoForm() {
+            document.getElementById('userInfoForm').style.display = 'block';
+            document.getElementById('userInfoDisplay').style.display = 'none';
+            document.getElementById('voteTabs').style.display = 'none';
+            document.getElementById('tabContents').style.display = 'none';
+        }
+        
+        // 隐藏用户信息表单
+        function hideUserInfoForm() {
+            document.getElementById('userInfoForm').style.display = 'none';
+            document.getElementById('voteTabs').style.display = 'flex';
+            document.getElementById('tabContents').style.display = 'block';
+        }
+        
+        // 创建选项卡
+        function createTabs() {
+            const tabsContainer = document.getElementById('voteTabs');
+            tabsContainer.innerHTML = '';
+            
+            voteTopics.forEach((topic, index) => {
+                const tab = document.createElement('div');
+                tab.className = `tab ${index === 0 ? 'active' : ''}`;
+                tab.textContent = topic.title;
+                tab.setAttribute('data-topic', topic.id);
+                
+                tab.addEventListener('click', function() {
+                    // 移除所有active类
+                    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+                    document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+                    
+                    // 添加active类到当前选项卡和内容
+                    tab.classList.add('active');
+                    document.getElementById(`tab-${topic.id}`).classList.add('active');
+                });
+                
+                tabsContainer.appendChild(tab);
+            });
+        }
+        
+        // 创建选项卡内容
+        function createTabContents() {
+            const contentsContainer = document.getElementById('tabContents');
+            contentsContainer.innerHTML = '';
+            
+            voteTopics.forEach((topic, index) => {
+                const content = document.createElement('div');
+                content.className = `tab-content ${index === 0 ? 'active' : ''}`;
+                content.id = `tab-${topic.id}`;
+                
+                // 检查是否已投票
+                const hasVoted = userVotes.hasOwnProperty(topic.id);
+                
+                if (hasVoted) {
+                    // 显示投票结果
+                    content.innerHTML = `
+                        <div class="vote-title">${topic.title}</div>
+                        <div class="vote-description">${topic.description}</div>
+                        <div class="result-item">
+                            <div class="result-label">
+                                <span>您已投票：${getVotedOptionText(topic.id)}</span>
+                            </div>
+                        </div>
+                    `;
+                } else {
+                    // 构建选项HTML
+                    const optionsHTML = topic.options.map(option => `
+                        <div class="vote-option" data-value="${option.value}" data-topic="${topic.id}">
+                            <div class="option-text-display">${option.label}</div>
+                        </div>
+                    `).join('');
+                    
+                    content.innerHTML = `
+                        <div class="vote-title">${topic.title}</div>
+                        <div class="vote-description">${topic.description}</div>
+                        <div class="vote-options-container">
+                            ${optionsHTML}
+                        </div>
+                        <div class="submit-section">
+                            <button class="submit-btn" data-topic="${topic.id}">提交本事项投票</button>
+                        </div>
+                    `;
+                }
+                
+                contentsContainer.appendChild(content);
+            });
+            
+            // 添加选项点击事件
+            document.querySelectorAll('.vote-option').forEach(option => {
+                option.addEventListener('click', function() {
+                    const topicId = this.getAttribute('data-topic');
+                    const value = this.getAttribute('data-value');
+                    
+                    // 移除同一主题下其他选项的选中状态
+                    document.querySelectorAll(`.vote-option[data-topic="${topicId}"]`).forEach(opt => {
+                        opt.classList.remove('selected');
                     });
+                    
+                    // 设置当前选项为选中
+                    this.classList.add('selected');
+                    
+                    // 启用提交按钮
+                    document.querySelector(`.submit-btn[data-topic="${topicId}"]`).disabled = false;
+                });
+            });
+            
+            // 添加提交按钮事件
+            document.querySelectorAll('.submit-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const topicId = this.getAttribute('data-topic');
+                    const selectedOption = document.querySelector(`.vote-option.selected[data-topic="${topicId}"]`);
+                    
+                    if (selectedOption) {
+                        const value = selectedOption.getAttribute('data-value');
+                        submitVote(topicId, value);
+                    }
+                });
+                
+                // 初始禁用提交按钮
+                btn.disabled = true;
+            });
+        }
+        
+        // 获取已投票选项的文本
+        function getVotedOptionText(topicId) {
+            const votedOptionId = userVotes[topicId];
+            const topic = voteTopics.find(t => t.id === topicId);
+            if (topic) {
+                const option = topic.options.find(o => o.value === votedOptionId);
+                return option ? option.label : '未知选项';
+            }
+            return '未知选项';
+        }
+        
+        // 提交单个事项的投票
+        function submitVote(topicId, value) {
+            userVotes[topicId] = value;
+            localStorage.setItem('userVotes', JSON.stringify(userVotes));
+            
+            // 更新完成状态
+            updateCompletionStatus();
+            
+            // 如果所有事项都已完成投票，显示结果
+            if (Object.keys(userVotes).length === voteTopics.length) {
+                showResults();
+            } else {
+                // 提示用户继续下一个事项
+                alert(`您已完成"${getTopicTitle(topicId)}"的投票，请继续完成其他事项的投票。`);
+                
+                // 自动切换到下一个未投票的事项
+                const nextTopic = voteTopics.find(topic => !userVotes[topic.id]);
+                if (nextTopic) {
+                    document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
+                    document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+                    
+                    document.querySelector(`.tab[data-topic="${nextTopic.id}"]`).classList.add('active');
+                    document.getElementById(`tab-${nextTopic.id}`).classList.add('active');
+                }
+            }
+        }
+        
+        // 获取事项标题
+        function getTopicTitle(topicId) {
+            const topic = voteTopics.find(t => t.id === topicId);
+            return topic ? topic.title : '';
+        }
+        
+        // 更新完成状态显示
+        function updateCompletionStatus() {
+            const completedCount = Object.keys(userVotes).length;
+            const totalCount = voteTopics.length;
+            
+            // 创建或更新完成状态显示
+            let statusElement = document.querySelector('.completion-status');
+            if (!statusElement) {
+                statusElement = document.createElement('div');
+                statusElement.className = 'completion-status';
+                document.querySelector('.header').appendChild(statusElement);
+            }
+            
+            statusElement.textContent = `完成进度: ${completedCount}/${totalCount} 个事项`;
+            
+            // 为已完成的选项卡添加标记
+            voteTopics.forEach(topic => {
+                const tab = document.querySelector(`.tab[data-topic="${topic.id}"]`);
+                if (userVotes[topic.id]) {
+                    tab.style.background = '#27ae60';
+                } else {
+                    tab.style.background = '';
                 }
             });
-            
-            if (options.length < 2) {
-                alert('请至少添加两个投票选项');
-                return;
-            }
-            
-            // 生成唯一ID
-            const voteId = 'vote_' + Date.now();
-            
-            // 创建投票对象
-            votes[voteId] = {
-                id: voteId,
-                title: title,
-                description: description,
-                type: voteType,
-                options: options,
-                startTime: startTime,
-                endTime: endTime,
-                collectInfo: collectInfo,
-                status: 'active',
-                created: new Date().toISOString(),
-                totalVotes: 0,
-                voters: []
-            };
-            
-            // 保存到本地存储
-            localStorage.setItem('votes', JSON.stringify(votes));
-            
-            // 重置表单
-            document.getElementById('voteForm').reset();
-            
-            // 重置选项
-            const optionsContainer = document.getElementById('voteOptions');
-            optionsContainer.innerHTML = '';
-            optionsContainer.innerHTML = `
-                <div class="vote-option">
-                    <input type="text" placeholder="选项1" class="option-input" required>
-                    <div class="option-description">
-                        <label>选项描述（可选）</label>
-                        <textarea placeholder="请输入选项描述" class="option-desc"></textarea>
-                    </div>
-                </div>
-                <div class="vote-option">
-                    <input type="text" placeholder="选项2" class="option-input" required>
-                    <div class="option-description">
-                        <label>选项描述（可选）</label>
-                        <textarea placeholder="请输入选项描述" class="option-desc"></textarea>
-                    </div>
-                </div>
-            `;
-            
-            // 设置默认时间
-            const now = new Date();
-            const tomorrow = new Date(now);
-            tomorrow.setDate(tomorrow.getDate() + 1);
-            
-            document.getElementById('startTime').value = formatDateTime(now);
-            document.getElementById('endTime').value = formatDateTime(tomorrow);
-            
-            alert('投票创建成功！');
-            showTab('manage');
-            loadVoteList();
         }
         
-        // 加载投票列表
-        function loadVoteList() {
-            const voteList = document.getElementById('voteList');
-            voteList.innerHTML = '';
+        // 显示投票结果
+        function showResults() {
+            document.querySelector('.tabs').style.display = 'none';
+            document.getElementById('tabContents').style.display = 'none';
+            document.getElementById('resultSection').style.display = 'block';
             
-            if (Object.keys(votes).length === 0) {
-                voteList.innerHTML = '<p>暂无投票活动，请创建新投票</p>';
-                return;
-            }
+            const resultsContainer = document.getElementById('resultsContainer');
+            resultsContainer.innerHTML = '';
             
-            Object.values(votes).forEach(vote => {
-                const voteCard = document.createElement('div');
-                voteCard.className = 'vote-card';
-                voteCard.innerHTML = `
-                    <h3>${vote.title}</h3>
-                    <p>${vote.description || '无描述'}</p>
-                    <p><strong>类型:</strong> ${vote.type === 'single' ? '单选' : '多选'} | 
-                    <strong>状态:</strong> ${getVoteStatus(vote)}</p>
-                    <p><strong>时间:</strong> ${formatDisplayDate(vote.startTime)} 至 ${formatDisplayDate(vote.endTime)}</p>
-                    <p><strong>总票数:</strong> ${vote.totalVotes}</p>
-                    <div style="margin-top: 10px;">
-                        <button class="btn" onclick="viewVote('${vote.id}')">查看详情</button>
-                        <button class="btn" onclick="showQRCode('${vote.id}')">生成二维码</button>
-                        <button class="btn" onclick="exportResults('${vote.id}')">导出结果</button>
-                        <button class="btn btn-danger" onclick="deleteVote('${vote.id}')">删除</button>
-                    </div>
-                `;
-                voteList.appendChild(voteCard);
-            });
-        }
-        
-        // 查看投票详情
-        function viewVote(voteId) {
-            const vote = votes[voteId];
-            if (!vote) return;
+            let totalAllVotes = 0;
             
-            currentVoteId = voteId;
-            
-            // 显示结果标签
-            showTab('results');
-            
-            // 生成结果页面
-            const resultContent = document.getElementById('resultContent');
-            resultContent.innerHTML = `
-                <h3>${vote.title}</h3>
-                <p>${vote.description || '无描述'}</p>
+            // 计算并显示每个事项的结果
+            voteTopics.forEach(topic => {
+                const totalVotes = topic.options.reduce((sum, option) => sum + option.count, 0);
+                totalAllVotes += totalVotes;
                 
-                <div class="stats">
-                    <div class="stat-card">
-                        <h4>总票数</h4>
-                        <p style="font-size: 2em; color: #3498db;">${vote.totalVotes}</p>
-                    </div>
-                    <div class="stat-card">
-                        <h4>投票状态</h4>
-                        <p style="font-size: 1.5em; color: ${getVoteStatus(vote) === '进行中' ? '#27ae60' : '#e74c3c'};">${getVoteStatus(vote)}</p>
-                    </div>
-                    <div class="stat-card">
-                        <h4>投票类型</h4>
-                        <p style="font-size: 1.5em;">${vote.type === 'single' ? '单选' : '多选'}</p>
-                    </div>
-                </div>
+                const topicResult = document.createElement('div');
+                topicResult.innerHTML = `<h3 style="font-size: 1.8em; color: #2c3e50; margin: 30px 0 15px; border-bottom: 2px solid #ecf0f1; padding-bottom: 10px;">${topic.title}</h3>`;
                 
-                <h4>投票结果</h4>
-                <div id="voteResults">
-                    ${generateResultsHTML(vote)}
-                </div>
-                
-                <button class="btn" onclick="exportResults('${voteId}')" style="margin-top: 20px;">导出CSV结果</button>
-            `;
-        }
-        
-        // 生成结果HTML
-        function generateResultsHTML(vote) {
-            let html = '';
-            const maxVotes = Math.max(...vote.options.map(opt => opt.votes), 1);
-            
-            vote.options.forEach(option => {
-                const percentage = vote.totalVotes > 0 ? (option.votes / vote.totalVotes * 100).toFixed(1) : 0;
-                html += `
-                    <div style="margin: 15px 0;">
-                        <div style="display: flex; justify-content: between;">
-                            <div>
-                                <strong>${option.text}</strong>
-                                ${option.description ? `<p style="margin: 5px 0; color: #666; font-size: 0.9em;">${option.description}</p>` : ''}
-                            </div>
-                            <span>${option.votes} 票 (${percentage}%)</span>
+                topic.options.forEach(option => {
+                    const percentage = totalVotes > 0 ? Math.round((option.count / totalVotes) * 100) : 0;
+                    
+                    const resultItem = document.createElement('div');
+                    resultItem.className = 'result-item';
+                    resultItem.innerHTML = `
+                        <div class="result-label">
+                            <span>${option.label}</span>
+                            <span>${option.count} 票 (${percentage}%)</span>
                         </div>
                         <div class="progress-bar">
-                            <div class="progress" style="width: ${percentage}%"></div>
+                            <div class="progress-fill" style="width: ${percentage}%">
+                                ${percentage}%
+                            </div>
+                        </div>
+                    `;
+                    topicResult.appendChild(resultItem);
+                });
+                
+                // 显示该事项总票数
+                const totalElement = document.createElement('div');
+                totalElement.style.cssText = 'text-align: center; font-size: 1.3em; color: #2c3e50; margin: 20px 0; padding: 10px; background: #f8f9fa; border-radius: 10px;';
+                totalElement.textContent = `本事项总投票数: ${totalVotes} 票`;
+                topicResult.appendChild(totalElement);
+                
+                resultsContainer.appendChild(topicResult);
+            });
+            
+            // 显示总票数
+            const grandTotalElement = document.createElement('div');
+            grandTotalElement.style.cssText = 'text-align: center; font-size: 1.5em; color: #2c3e50; margin-top: 30px; padding: 15px; background: #ecf0f1; border-radius: 10px;';
+            grandTotalElement.textContent = `所有事项总投票数: ${totalAllVotes} 票`;
+            resultsContainer.appendChild(grandTotalElement);
+        }
+        
+        // 管理员界面功能
+        function renderAdminTopics() {
+            const container = document.getElementById('adminTopicsContainer');
+            container.innerHTML = '';
+            
+            if (voteTopics.length === 0) {
+                container.innerHTML = '<div style="text-align: center; padding: 40px; color: #7f8c8d; font-size: 1.2em;">暂无投票事项，请点击"添加新事项"按钮创建</div>';
+                return;
+            }
+            
+            voteTopics.forEach((topic, index) => {
+                const topicCard = document.createElement('div');
+                topicCard.className = 'topic-card';
+                topicCard.innerHTML = `
+                    <div class="topic-header">
+                        <input type="text" class="topic-title" value="${topic.title}" data-index="${index}">
+                        <div class="topic-actions">
+                            <button class="topic-btn edit" data-index="${index}">编辑</button>
+                            <button class="topic-btn delete" data-index="${index}">删除</button>
                         </div>
                     </div>
-                `;
-            });
-            
-            return html;
-        }
-        
-        // 显示二维码
-        function showQRCode(voteId) {
-            const vote = votes[voteId];
-            if (!vote) return;
-            
-            currentVoteId = voteId;
-            
-            // 显示投票标签
-            showTab('vote');
-            
-            // 生成投票页面URL - 使用GitHub Pages地址
-            const voteUrl = `${serverUrl}?vote=${voteId}`;
-            
-            const voteContent = document.getElementById('voteContent');
-            voteContent.innerHTML = `
-                <h3>${vote.title}</h3>
-                <p>扫描以下二维码参与投票：</p>
-                
-                <div class="qrcode-container">
-                    <div id="qrcode"></div>
-                    <p>或直接访问：<a href="${voteUrl}" target="_blank">${voteUrl}</a></p>
-                </div>
-                
-                <div class="form-group">
-                    <label>投票链接</label>
-                    <input type="text" value="${voteUrl}" readonly>
-                    <button class="btn" onclick="copyToClipboard('${voteUrl}')">复制链接</button>
-                </div>
-                
-                <div class="deploy-notice">
-                    <h4>使用说明</h4>
-                    <p>使用微信扫描上面的二维码，即可参与投票。</p>
-                    <p>您的GitHub Pages地址：<strong>${serverUrl}</strong></p>
-                </div>
-            `;
-            
-            // 生成二维码
-            const qrcodeContainer = document.getElementById('qrcode');
-            qrcodeContainer.innerHTML = '';
-            
-            QRCode.toCanvas(qrcodeContainer, voteUrl, {
-                width: 200,
-                height: 200,
-                colorDark: "#000000",
-                colorLight: "#ffffff",
-                correctLevel: QRCode.CorrectLevel.H
-            }, function(error) {
-                if (error) {
-                    console.error(error);
-                    alert('生成二维码时出错: ' + error.message);
-                }
-            });
-        }
-        
-        // 显示投票页面（用户投票界面）
-        function showVotePage(voteId) {
-            const vote = votes[voteId];
-            if (!vote) {
-                document.body.innerHTML = '<div style="padding: 20px; text-align: center;"><h2>投票不存在或已结束</h2></div>';
-                return;
-            }
-            
-            // 检查投票状态
-            const now = new Date();
-            const startTime = new Date(vote.startTime);
-            const endTime = new Date(vote.endTime);
-            
-            if (now < startTime) {
-                document.body.innerHTML = `
-                    <div style="padding: 20px; text-align: center;">
-                        <h2>投票尚未开始</h2>
-                        <p>开始时间: ${formatDisplayDate(vote.startTime)}</p>
-                    </div>
-                `;
-                return;
-            }
-            
-            if (now > endTime) {
-                document.body.innerHTML = `
-                    <div style="padding: 20px; text-align: center;">
-                        <h2>投票已结束</h2>
-                        <p>结束时间: ${formatDisplayDate(vote.endTime)}</p>
-                    </div>
-                `;
-                return;
-            }
-            
-            // 生成投票页面
-            document.body.innerHTML = `
-                <div class="container">
-                    <div class="header">
-                        <h1>${vote.title}</h1>
-                        <p>${vote.description || ''}</p>
-                    </div>
-                    <div class="content">
-                        <form id="userVoteForm">
-                            <h3>请选择您的选项：</h3>
-                            ${generateVoteOptionsHTML(vote)}
-                            
-                            ${vote.collectInfo !== 'none' ? `
-                                <div class="form-group">
-                                    <label for="voterName">${vote.collectInfo.includes('name') ? '姓名' : ''}</label>
-                                    <input type="text" id="voterName" ${vote.collectInfo.includes('name') ? 'required' : ''}>
+                    <textarea class="topic-description" data-index="${index}">${topic.description}</textarea>
+                    <div class="options-container" id="options-${topic.id}">
+                        ${topic.options.map((option, optIndex) => `
+                            <div class="option-item">
+                                <input type="text" class="option-text" value="${option.label}" data-topic="${topic.id}" data-option="${optIndex}">
+                                <div class="option-actions">
+                                    <button class="option-btn delete" data-topic="${topic.id}" data-option="${optIndex}">删除</button>
                                 </div>
-                            ` : ''}
-                            
-                            ${vote.collectInfo.includes('contact') ? `
-                                <div class="form-group">
-                                    <label for="voterContact">联系方式</label>
-                                    <input type="text" id="voterContact" required>
-                                </div>
-                            ` : ''}
-                            
-                            <button type="submit" class="btn btn-success">提交投票</button>
-                        </form>
+                            </div>
+                        `).join('')}
                     </div>
-                </div>
-            `;
-            
-            // 添加表单提交事件
-            document.getElementById('userVoteForm').addEventListener('submit', function(e) {
-                e.preventDefault();
-                submitVote(voteId);
-            });
-        }
-        
-        // 生成投票选项HTML
-        function generateVoteOptionsHTML(vote) {
-            let html = '';
-            const inputType = vote.type === 'single' ? 'radio' : 'checkbox';
-            const inputName = vote.type === 'single' ? 'voteOption' : 'voteOptions';
-            
-            vote.options.forEach((option, index) => {
-                html += `
-                    <div class="vote-item">
-                        <input type="${inputType}" id="option-${index}" name="${inputName}" value="${index}">
-                        <label for="option-${index}">
-                            <strong>${option.text}</strong>
-                            ${option.description ? `<p style="margin: 5px 0; color: #666; font-size: 0.9em;">${option.description}</p>` : ''}
-                        </label>
+                    <div class="add-option">
+                        <input type="text" class="new-option-input" placeholder="输入新选项内容" data-topic="${topic.id}">
+                        <button class="add-option-btn" data-topic="${topic.id}">添加选项</button>
                     </div>
                 `;
+                
+                container.appendChild(topicCard);
             });
             
-            return html;
-        }
-        
-        // 提交投票
-        function submitVote(voteId) {
-            const vote = votes[voteId];
-            if (!vote) return;
-            
-            // 获取选择的选项
-            let selectedOptions = [];
-            if (vote.type === 'single') {
-                const selected = document.querySelector('input[name="voteOption"]:checked');
-                if (!selected) {
-                    alert('请选择一个选项');
-                    return;
-                }
-                selectedOptions.push(parseInt(selected.value));
-            } else {
-                const selected = document.querySelectorAll('input[name="voteOptions"]:checked');
-                if (selected.length === 0) {
-                    alert('请至少选择一个选项');
-                    return;
-                }
-                selected.forEach(option => {
-                    selectedOptions.push(parseInt(option.value));
+            // 添加事件监听器
+            document.querySelectorAll('.topic-title').forEach(input => {
+                input.addEventListener('input', function() {
+                    const index = this.getAttribute('data-index');
+                    voteTopics[index].title = this.value;
                 });
-            }
-            
-            // 获取投票人信息
-            const voterName = vote.collectInfo.includes('name') ? document.getElementById('voterName').value : '';
-            const voterContact = vote.collectInfo.includes('contact') ? document.getElementById('voterContact').value : '';
-            
-            // 更新投票数据
-            selectedOptions.forEach(optionIndex => {
-                vote.options[optionIndex].votes++;
             });
             
-            vote.totalVotes++;
-            vote.voters.push({
-                name: voterName,
-                contact: voterContact,
-                choices: selectedOptions.map(i => vote.options[i].text),
-                timestamp: new Date().toISOString()
+            document.querySelectorAll('.topic-description').forEach(textarea => {
+                textarea.addEventListener('input', function() {
+                    const index = this.getAttribute('data-index');
+                    voteTopics[index].description = this.value;
+                });
+            });
+            
+            document.querySelectorAll('.topic-btn.edit').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const index = this.getAttribute('data-index');
+                    editTopic(index);
+                });
+            });
+            
+            document.querySelectorAll('.topic-btn.delete').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const index = this.getAttribute('data-index');
+                    deleteTopic(index);
+                });
+            });
+            
+            document.querySelectorAll('.option-btn.delete').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const topicId = this.getAttribute('data-topic');
+                    const optionIndex = this.getAttribute('data-option');
+                    deleteOption(topicId, optionIndex);
+                });
+            });
+            
+            document.querySelectorAll('.option-text').forEach(input => {
+                input.addEventListener('input', function() {
+                    const topicId = this.getAttribute('data-topic');
+                    const optionIndex = this.getAttribute('data-option');
+                    const topic = voteTopics.find(t => t.id === topicId);
+                    
+                    if (topic && topic.options[optionIndex]) {
+                        topic.options[optionIndex].label = this.value;
+                    }
+                });
+            });
+            
+            document.querySelectorAll('.add-option-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const topicId = this.getAttribute('data-topic');
+                    const input = document.querySelector(`.new-option-input[data-topic="${topicId}"]`);
+                    addOption(topicId, input.value);
+                    input.value = '';
+                });
+            });
+        }
+        
+        // 添加新投票事项
+        function addNewTopic() {
+            const newTopic = {
+                id: 'topic-' + Date.now(),
+                title: '新投票事项',
+                description: '请描述这个投票事项',
+                options: [
+                    { value: 'option1', label: '选项1', count: 0 },
+                    { value: 'option2', label: '选项2', count: 0 }
+                ]
+            };
+            
+            voteTopics.push(newTopic);
+            renderAdminTopics();
+            showStatusMessage('新投票事项已添加', 'success');
+        }
+        
+        // 编辑投票事项
+        function editTopic(index) {
+            const topic = voteTopics[index];
+            const newTitle = prompt('请输入事项标题:', topic.title);
+            if (newTitle !== null) {
+                topic.title = newTitle;
+                
+                const newDescription = prompt('请输入事项描述:', topic.description);
+                if (newDescription !== null) {
+                    topic.description = newDescription;
+                    renderAdminTopics();
+                }
+            }
+        }
+        
+        // 删除投票事项
+        function deleteTopic(index) {
+            if (confirm('确定要删除这个投票事项吗？此操作不可撤销。')) {
+                voteTopics.splice(index, 1);
+                renderAdminTopics();
+                showStatusMessage('投票事项已删除', 'success');
+            }
+        }
+        
+        // 删除选项
+        function deleteOption(topicId, optionIndex) {
+            const topic = voteTopics.find(t => t.id === topicId);
+            if (topic && topic.options.length > 1) {
+                topic.options.splice(optionIndex, 1);
+                renderAdminTopics();
+                showStatusMessage('选项已删除', 'success');
+            } else {
+                alert('每个投票事项至少需要保留一个选项。');
+            }
+        }
+        
+        // 添加选项
+        function addOption(topicId, optionText) {
+            if (!optionText.trim()) {
+                alert('请输入选项内容');
+                return;
+            }
+            
+            const topic = voteTopics.find(t => t.id === topicId);
+            if (topic) {
+                topic.options.push({
+                    value: 'option-' + Date.now(),
+                    label: optionText,
+                    count: 0
+                });
+                renderAdminTopics();
+                showStatusMessage('选项已添加', 'success');
+            }
+        }
+        
+        // 保存所有更改
+        function saveAllChanges() {
+            // 更新选项文本
+            document.querySelectorAll('.option-text').forEach(input => {
+                const topicId = input.getAttribute('data-topic');
+                const optionIndex = input.getAttribute('data-option');
+                const topic = voteTopics.find(t => t.id === topicId);
+                
+                if (topic && topic.options[optionIndex]) {
+                    topic.options[optionIndex].label = input.value;
+                }
             });
             
             // 保存到本地存储
-            localStorage.setItem('votes', JSON.stringify(votes));
+            localStorage.setItem('voteTopics', JSON.stringify(voteTopics));
+            showStatusMessage('所有更改已保存！', 'success');
             
-            // 显示成功消息
-            document.body.innerHTML = `
-                <div class="container">
-                    <div class="header">
-                        <h1>${vote.title}</h1>
-                    </div>
-                    <div class="content">
-                        <div class="success-message">
-                            <h3>投票成功！</h3>
-                            <p>感谢您的参与。</p>
-                        </div>
-                        <button class="btn" onclick="window.location.href = '${serverUrl}'">返回首页</button>
-                    </div>
-                </div>
-            `;
+            // 如果当前是用户模式，刷新用户界面
+            if (!isAdminMode) {
+                initializeUserInterface();
+            }
         }
         
         // 导出结果
-        function exportResults(voteId) {
-            const vote = votes[voteId];
-            if (!vote) return;
+        function exportResults() {
+            alert('导出功能将在实际部署后实现');
+        }
+        
+        // 生成二维码
+        function generateQRCode() {
+            const qrElement = document.getElementById('adminQrCode');
+            qrElement.innerHTML = '';
             
-            // 准备CSV数据
-            let csvData = [];
-            
-            // 添加标题行
-            csvData.push(['投票标题', vote.title]);
-            csvData.push(['投票描述', vote.description || '']);
-            csvData.push(['投票类型', vote.type === 'single' ? '单选' : '多选']);
-            csvData.push(['开始时间', vote.startTime]);
-            csvData.push(['结束时间', vote.endTime]);
-            csvData.push(['总票数', vote.totalVotes]);
-            csvData.push([]);
-            
-            // 添加选项结果
-            csvData.push(['选项', '选项描述', '票数', '百分比']);
-            vote.options.forEach(option => {
-                const percentage = vote.totalVotes > 0 ? (option.votes / vote.totalVotes * 100).toFixed(2) : 0;
-                csvData.push([option.text, option.description || '', option.votes, `${percentage}%`]);
-            });
-            
-            csvData.push([]);
-            
-            // 添加投票人信息（如果有）
-            if (vote.voters.length > 0) {
-                csvData.push(['投票人信息']);
-                const headers = [];
-                if (vote.collectInfo.includes('name')) headers.push('姓名');
-                if (vote.collectInfo.includes('contact')) headers.push('联系方式');
-                headers.push('投票时间', '选择项');
+            try {
+                // 生成用户投票链接（带参数，自动跳转到用户界面）
+                const currentUrl = window.location.href.split('?')[0]; // 移除现有参数
+                const voteUrl = `${currentUrl}?mode=user`;
                 
-                csvData.push(headers);
-                
-                vote.voters.forEach(voter => {
-                    const row = [];
-                    if (vote.collectInfo.includes('name')) row.push(voter.name || '');
-                    if (vote.collectInfo.includes('contact')) row.push(voter.contact || '');
-                    row.push(voter.timestamp, voter.choices.join(', '));
-                    csvData.push(row);
+                // 使用QRCode生成二维码
+                QRCode.toCanvas(qrElement, voteUrl, {
+                    width: 180,
+                    height: 180,
+                    margin: 1,
+                    color: {
+                        dark: '#2c3e50',
+                        light: '#ffffff'
+                    }
+                }, function(error) {
+                    if (error) {
+                        console.error('生成二维码时出错:', error);
+                        qrElement.innerHTML = '二维码生成失败<br>请刷新页面重试';
+                        showStatusMessage('二维码生成失败，请检查网络连接或刷新页面', 'error');
+                    } else {
+                        console.log('二维码生成成功');
+                        showStatusMessage('二维码已生成，可下载分享给员工', 'success');
+                    }
                 });
-            }
-            
-            // 转换为CSV字符串
-            const csv = Papa.unparse(csvData);
-            
-            // 创建下载链接
-            const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-            const link = document.createElement('a');
-            const url = URL.createObjectURL(blob);
-            link.setAttribute('href', url);
-            link.setAttribute('download', `投票结果_${vote.title}_${new Date().toISOString().split('T')[0]}.csv`);
-            link.style.visibility = 'hidden';
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-        }
-        
-        // 删除投票
-        function deleteVote(voteId) {
-            if (confirm('确定要删除这个投票吗？此操作不可撤销。')) {
-                delete votes[voteId];
-                localStorage.setItem('votes', JSON.stringify(votes));
-                loadVoteList();
+                
+                // 更新投票链接显示
+                const voteUrlElement = document.getElementById('voteUrl');
+                voteUrlElement.innerHTML = `投票链接: <a href="${voteUrl}" target="_blank">${voteUrl}</a>`;
+            } catch (error) {
+                console.error('生成二维码时发生异常:', error);
+                qrElement.innerHTML = '二维码生成失败<br>请检查QRCode库是否加载';
+                showStatusMessage('二维码生成失败，请检查QRCode库是否加载', 'error');
             }
         }
         
-        // 复制到剪贴板
-        function copyToClipboard(text) {
-            navigator.clipboard.writeText(text).then(function() {
-                alert('链接已复制到剪贴板');
-            }, function(err) {
-                console.error('复制失败: ', err);
-                // 备用方案
-                const textArea = document.createElement('textarea');
-                textArea.value = text;
-                document.body.appendChild(textArea);
-                textArea.select();
-                document.execCommand('copy');
-                document.body.removeChild(textArea);
-                alert('链接已复制到剪贴板');
-            });
+        // 下载二维码图片
+        function downloadQRCode() {
+            const canvas = document.querySelector('#adminQrCode canvas');
+            if (canvas) {
+                const link = document.createElement('a');
+                link.download = '投票二维码.png';
+                link.href = canvas.toDataURL('image/png');
+                link.click();
+                showStatusMessage('二维码图片已下载', 'success');
+            } else {
+                alert('二维码尚未生成，请先生成二维码再下载。');
+                showStatusMessage('二维码尚未生成，请先生成二维码', 'error');
+            }
         }
         
-        // 工具函数：格式化日期时间为本地字符串
-        function formatDateTime(date) {
-            return date.toISOString().slice(0, 16);
-        }
-        
-        // 工具函数：格式化显示日期
-        function formatDisplayDate(dateString) {
-            return new Date(dateString).toLocaleString('zh-CN');
-        }
-        
-        // 工具函数：获取投票状态
-        function getVoteStatus(vote) {
-            const now = new Date();
-            const start = new Date(vote.startTime);
-            const end = new Date(vote.endTime);
+        // 显示状态消息
+        function showStatusMessage(message, type) {
+            const statusElement = document.getElementById('adminStatusMessage');
+            statusElement.innerHTML = `<div class="status-message status-${type}">${message}</div>`;
             
-            if (now < start) return '未开始';
-            if (now > end) return '已结束';
-            return '进行中';
+            // 3秒后自动隐藏
+            setTimeout(() => {
+                statusElement.innerHTML = '';
+            }, 3000);
         }
     </script>
 </body>
